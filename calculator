@@ -1,0 +1,131 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <cstdio>
+
+using namespace std;
+
+string oldStr;
+vector <char> operands;
+vector <int> numbers;
+stringstream s;
+
+bool cheakBag();
+int ALU(char oper, int leftNum, int rightNum);
+int val(string s);
+
+int main() {
+	getline(cin, oldStr);
+	s << oldStr;
+	if (cheakBag())
+		return 0;
+
+	int num;
+	vector <char>::iterator itOper = operands.begin();
+	vector <int>::iterator itNum = numbers.begin();
+
+	while (itOper != operands.end())
+		if (*itOper == '+' || *itOper == '-') {
+			itOper++;
+			itNum++;
+		} else {
+			num = ALU(*itOper, *itNum, *(itNum + 1));
+			numbers.erase(itNum, itNum + 2);
+			operands.erase(itOper);
+			numbers.insert(itNum, num);
+		}
+
+	itOper = operands.begin();
+	itNum = numbers.begin();
+
+	while (itOper != operands.end()) {
+		num = ALU(*itOper, *itNum, *(itNum + 1));
+		numbers.erase(itNum, itNum + 2);
+		operands.erase(itOper);
+		numbers.insert(itNum, num);
+	}
+
+	cout << "result is " << numbers[0] << endl;
+
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+bool cheakBag() {
+	string word;
+	int num;
+	bool numOrOper = false;
+	while (s >> word) {
+		if (!numOrOper) {
+			for (int i = 0; i < word.length(); i++)
+				if (!(word[i] <= '9' && word[i] >= '0' || i == 0 && word[i] == '-')) {
+					cout << "incarrect input: " << word << endl;
+					return true;
+				}
+			num = val(word);
+			if (num == 0 && (operands[operands.size() - 1] == '%' || operands[operands.size() - 1] == '/')) {
+				cout << "div on 0" << endl;
+				return true;
+			}
+			numbers.push_back(val(word));
+		} else {
+			if (word.length() != 1 || (word[0] != '%' && word[0] != '+' &&
+				word[0] != '*' && word[0] != '-' && word[0] != '/')) {
+				cout << "incarrect input: " << word << endl;
+				return true;
+			}
+			operands.push_back(word[0]);
+		}
+		numOrOper = !numOrOper;
+	}
+
+	return false;
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int ALU(char oper, int leftNum, int rightNum) {
+	int result;
+	switch (oper) {
+		case '+':
+			result = leftNum + rightNum;
+			break;
+		case '-':
+			result = leftNum - rightNum;
+			break;
+		case '*':
+			result = leftNum * rightNum;
+			break;
+		case '/':
+			result = leftNum / rightNum;
+			break;
+		case '%':
+			result = leftNum % rightNum;
+			break;
+	}
+	return result;
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int val(string s) {
+	int sum = 0;
+	int i;
+	bool sign;
+
+	if (s[0] == '-') {
+		sign = true;
+		i = 1;
+	} else {
+		sign = false;
+		i = 0;
+	}
+
+	for (; i < s.length(); i++)
+		sum = sum * 10 + s[i] - '0';
+	if (sign)
+		sum = -sum;
+
+	return sum;
+}
